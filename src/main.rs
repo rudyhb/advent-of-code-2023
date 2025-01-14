@@ -2,6 +2,7 @@ use utils::timer::Timer;
 
 mod common;
 mod day01_trebuchet;
+mod day02_cube_conundrum;
 
 fn main() {
     let mut context = common::Context::default();
@@ -45,5 +46,6 @@ fn main() {
 fn days() -> &'static [fn(&mut common::Context)] {
     &[
         day01_trebuchet::run,
+        day02_cube_conundrum::run,
     ]
 }
