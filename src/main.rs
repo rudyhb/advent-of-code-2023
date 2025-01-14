@@ -4,6 +4,7 @@ mod common;
 mod day01_trebuchet;
 mod day02_cube_conundrum;
 mod day03_gear_ratios;
+mod day04_scratchcards;
 
 fn main() {
     let mut context = common::Context::default();
@@ -49,5 +50,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day01_trebuchet::run,
         day02_cube_conundrum::run,
         day03_gear_ratios::run,
+        day04_scratchcards::run,
     ]
 }
