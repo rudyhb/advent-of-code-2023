@@ -1,4 +1,5 @@
 ﻿use std::borrow::Cow;
+pub mod models;
 
 pub type InputProvider = dyn Fn() -> Cow<'static, str>;
 #[derive(Default)]
