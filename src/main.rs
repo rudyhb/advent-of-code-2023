@@ -7,6 +7,7 @@ mod day03_gear_ratios;
 mod day04_scratchcards;
 mod day05_if_you_give_a_seed_a_fertilizer;
 mod day06_wait_for_it;
+mod day07_camel_cards;
 
 fn main() {
     let mut context = common::Context::default();
@@ -55,5 +56,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day04_scratchcards::run,
         day05_if_you_give_a_seed_a_fertilizer::run,
         day06_wait_for_it::run,
+        day07_camel_cards::run,
     ]
 }
