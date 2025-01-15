@@ -5,7 +5,6 @@ pub fn run(context: &mut Context) {
     context.add_test_inputs(get_test_inputs());
 
     let input = context.get_input();
-    let input = input.as_str();
 
     let mut sum = 0;
     for word in input.lines() {

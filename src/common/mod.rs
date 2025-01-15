@@ -1,4 +1,6 @@
 ﻿use std::borrow::Cow;
+use std::ops::Deref;
+
 pub mod models;
 
 pub type InputProvider = dyn Fn() -> Cow<'static, str>;
@@ -26,7 +28,7 @@ impl Context {
     pub fn is_testing(&self) -> bool {
         self.testing.is_some()
     }
-    
+
     pub fn get_input(&self) -> TextInput {
         if let Some(testing) = self.testing {
             return self.testing_inputs[testing]().into();
@@ -46,7 +48,7 @@ impl TextInput {
     }
 }
 
-impl From<Cow<'static,str>> for TextInput {
+impl From<Cow<'static, str>> for TextInput {
     fn from(value: Cow<'static, str>) -> Self {
         Self(value)
     }
@@ -66,6 +68,14 @@ impl From<String> for TextInput {
 
 impl AsRef<str> for TextInput {
     fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl Deref for TextInput {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
         self.as_str()
     }
 }

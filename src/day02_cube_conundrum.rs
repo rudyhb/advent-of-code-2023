@@ -6,7 +6,6 @@ pub fn run(context: &mut Context) {
     context.add_test_inputs(get_test_inputs());
 
     let input = context.get_input();
-    let input = input.as_str();
 
     let games: Vec<Game> = input.lines().map(|line| line.parse().unwrap()).collect();
     let set = Set {
