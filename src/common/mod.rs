@@ -2,6 +2,7 @@
 use std::ops::Deref;
 
 pub mod models;
+pub mod helpers;
 
 pub type InputProvider = dyn Fn() -> Cow<'static, str>;
 #[derive(Default)]
