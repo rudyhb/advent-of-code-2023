@@ -9,6 +9,7 @@ mod day05_if_you_give_a_seed_a_fertilizer;
 mod day06_wait_for_it;
 mod day07_camel_cards;
 mod day08_haunted_wasteland;
+mod day09_mirage_maintenance;
 
 fn main() {
     let mut context = common::Context::default();
@@ -59,5 +60,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day06_wait_for_it::run,
         day07_camel_cards::run,
         day08_haunted_wasteland::run,
+        day09_mirage_maintenance::run,
     ]
 }
