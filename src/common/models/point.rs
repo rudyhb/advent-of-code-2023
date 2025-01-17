@@ -1,11 +1,52 @@
+use crate::common::models::Direction;
 use std::cmp::Ordering;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
+use utils::a_star::Node;
 
 #[derive(Clone)]
 pub struct Point<T> {
     pub x: T,
     pub y: T,
+}
+
+impl Point<usize> {
+    #[allow(dead_code)]
+    pub fn move_in_unchecked(&self, direction: Direction) -> Self {
+        self.move_in(direction).unwrap()
+    }
+    pub fn move_in(&self, direction: Direction) -> Option<Self> {
+        match direction {
+            Direction::Up => {
+                if self.y > 0 {
+                    Some(Self {
+                        x: self.x,
+                        y: self.y - 1,
+                    })
+                } else {
+                    None
+                }
+            }
+            Direction::Down => Some(Self {
+                x: self.x,
+                y: self.y + 1,
+            }),
+            Direction::Left => {
+                if self.x > 0 {
+                    Some(Self {
+                        x: self.x - 1,
+                        y: self.y,
+                    })
+                } else {
+                    None
+                }
+            }
+            Direction::Right => Some(Self {
+                x: self.x + 1,
+                y: self.y,
+            }),
+        }
+    }
 }
 
 impl<T: Display> Display for Point<T> {
@@ -56,3 +97,5 @@ impl<T: Ord> Ord for Point<T> {
         }
     }
 }
+
+impl Node for Point<usize> {}

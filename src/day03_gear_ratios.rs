@@ -1,4 +1,4 @@
-use crate::common::models::{Grid, Neighbors, Point};
+use crate::common::models::{Grid, DirectionFlag, Point};
 use crate::common::{Context, InputProvider};
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
@@ -28,19 +28,19 @@ impl Schematic {
         let mut point = number.position.clone();
         let mut neighbors = self.grid.neighbors(
             &point,
-            Neighbors::LEFT
-                | Neighbors::UP_LEFT
-                | Neighbors::DOWN_LEFT
-                | Neighbors::UP
-                | Neighbors::DOWN,
+            DirectionFlag::LEFT
+                | DirectionFlag::UP_LEFT
+                | DirectionFlag::DOWN_LEFT
+                | DirectionFlag::UP
+                | DirectionFlag::DOWN,
         );
         for _ in 1..number.len {
             point.x += 1;
-            neighbors.extend(self.grid.neighbors(&point, Neighbors::UP | Neighbors::DOWN));
+            neighbors.extend(self.grid.neighbors(&point, DirectionFlag::UP | DirectionFlag::DOWN));
         }
         neighbors.extend(self.grid.neighbors(
             &point,
-            Neighbors::RIGHT | Neighbors::UP_RIGHT | Neighbors::DOWN_RIGHT,
+            DirectionFlag::RIGHT | DirectionFlag::UP_RIGHT | DirectionFlag::DOWN_RIGHT,
         ));
 
         neighbors.iter().any(|neighbor| {
@@ -76,7 +76,7 @@ impl Schematic {
     fn get_two_adjacent_numbers(&self, point: &Point<usize>) -> Option<(u64, u64)> {
         let numbers: HashSet<_> = self
             .grid
-            .neighbors(point, Neighbors::ALL_DIRECTIONS)
+            .neighbors(point, DirectionFlag::ALL_DIRECTIONS)
             .into_iter()
             .filter(|neighbor| self.grid[neighbor].is_numeric())
             .map(|neighbor| self.get_number_at(neighbor))
