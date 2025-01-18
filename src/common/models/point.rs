@@ -47,6 +47,9 @@ impl Point<usize> {
             }),
         }
     }
+    pub fn manhattan_distance(&self, other: &Self) -> usize {
+        (self.x.max(other.x) - self.x.min(other.x)) + (self.y.max(other.y) - self.y.min(other.y))
+    }
 }
 
 impl<T: Display> Display for Point<T> {

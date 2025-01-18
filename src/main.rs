@@ -11,6 +11,7 @@ mod day07_camel_cards;
 mod day08_haunted_wasteland;
 mod day09_mirage_maintenance;
 mod day10_pipe_maze;
+mod day11_cosmic_expansion;
 
 fn main() {
     let mut context = common::Context::default();
@@ -63,5 +64,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day08_haunted_wasteland::run,
         day09_mirage_maintenance::run,
         day10_pipe_maze::run,
+        day11_cosmic_expansion::run,
     ]
 }
