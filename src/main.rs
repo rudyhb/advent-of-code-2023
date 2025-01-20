@@ -13,6 +13,7 @@ mod day09_mirage_maintenance;
 mod day10_pipe_maze;
 mod day11_cosmic_expansion;
 mod day12_hot_springs;
+mod day13_point_of_incidence;
 
 fn main() {
     let mut context = common::Context::default();
@@ -67,5 +68,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day10_pipe_maze::run,
         day11_cosmic_expansion::run,
         day12_hot_springs::run,
+        day13_point_of_incidence::run,
     ]
 }
