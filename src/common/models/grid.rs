@@ -1,5 +1,6 @@
 use crate::common::models::{Direction, DirectionFlag, Point};
 use std::fmt::{Display, Formatter};
+use std::hash::{Hash, Hasher};
 use std::ops::{Index, IndexMut};
 
 pub struct Grid<T> {
@@ -123,6 +124,19 @@ impl<T> Grid<T> {
     }
     pub fn iter_rows(&self) -> GridRowIterator<T> {
         GridRowIterator::new(self)
+    }
+    pub fn swap(&mut self, left: &Point<usize>, right: &Point<usize>) {
+        let left: *mut T = &mut self[left];
+        let right: *mut T = &mut self[right];
+        unsafe {
+            std::ptr::swap(left, right);
+        }
+    }
+    pub fn display_with_rule<V: Display, F>(&self, rule: F) -> GridDisplayWithRule<T, V, F>
+    where
+        F: for<'p> Fn(&'p T) -> V,
+    {
+        GridDisplayWithRule { grid: self, rule }
     }
 }
 
@@ -253,6 +267,37 @@ impl<'a, T> Iterator for RowIterator<'a, T> {
     }
 }
 
+impl<T: PartialEq> PartialEq for Grid<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.len_x == other.len_x
+            && self.len_y == other.len_y
+            && self
+                .iter()
+                .zip(other.iter())
+                .all(|((_, left), (_, right))| left == right)
+    }
+}
+
+impl<T: PartialEq + Eq> Eq for Grid<T> {}
+
+impl<T: Eq + PartialEq + Hash> Hash for Grid<T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        for (_, value) in self.iter() {
+            value.hash(state);
+        }
+    }
+}
+
+impl<T: Clone> Clone for Grid<T> {
+    fn clone(&self) -> Self {
+        Self {
+            grid: self.grid.clone(),
+            len_y: self.len_y,
+            len_x: self.len_x,
+        }
+    }
+}
+
 impl<T: Display> Display for Grid<T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -310,6 +355,31 @@ where
     }
 }
 
+pub struct GridDisplayWithRule<'a, T, V: 'a, F>
+where
+    F: for<'p> Fn(&'p T) -> V,
+{
+    grid: &'a Grid<T>,
+    rule: F,
+}
+
+impl<'a, T, V: Display + 'a, F> Display for GridDisplayWithRule<'a, T, V, F>
+where
+    F: for<'p> Fn(&'p T) -> V,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for y in 0..self.grid.len_y() {
+            writeln!(f)?;
+            for x in 0..self.grid.len_x() {
+                let value = &self.grid[y][x];
+                let o = (self.rule)(&value);
+                write!(f, "{}", o)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -326,5 +396,28 @@ mod tests {
         for (i, item) in grid.iter() {
             println!("{}, {}", i, item);
         }
+    }
+
+    #[test]
+    fn test_swap() {
+        let mut grid = Grid::from_iter(
+            [
+                [1, 2, 3].into_iter(),
+                [4, 5, 6].into_iter(),
+                [7, 8, 9].into_iter(),
+            ]
+            .into_iter(),
+        );
+        let left = Point { x: 1, y: 0 };
+        let right = Point { x: 0, y: 2 };
+        let left_val = grid[&left];
+        let right_val = grid[&right];
+        println!("[0][1] = {}", grid[&left]);
+        println!("[2][0] = {}", grid[&right]);
+        grid.swap(&left, &right);
+        println!("[0][1] = {}", grid[&left]);
+        println!("[2][0] = {}", grid[&right]);
+        assert_eq!(left_val, grid[&right]);
+        assert_eq!(right_val, grid[&left]);
     }
 }
