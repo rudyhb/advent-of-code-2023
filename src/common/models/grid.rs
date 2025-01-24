@@ -1,6 +1,7 @@
 use crate::common::models::{Direction, DirectionFlag, Point};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
+use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 
 pub struct Grid<T> {
@@ -134,9 +135,13 @@ impl<T> Grid<T> {
     }
     pub fn display_with_rule<V: Display, F>(&self, rule: F) -> GridDisplayWithRule<T, V, F>
     where
-        F: for<'p> Fn(&'p T) -> V,
+        F: for<'p> Fn((&'p Point<usize>, &'p T)) -> V,
     {
-        GridDisplayWithRule { grid: self, rule }
+        GridDisplayWithRule {
+            grid: self,
+            rule,
+            _phantom_data: Default::default(),
+        }
     }
 }
 
@@ -357,22 +362,24 @@ where
 
 pub struct GridDisplayWithRule<'a, T, V: 'a, F>
 where
-    F: for<'p> Fn(&'p T) -> V,
+    F: for<'p> Fn((&'p Point<usize>, &'p T)) -> V,
 {
     grid: &'a Grid<T>,
     rule: F,
+    _phantom_data: PhantomData<V>,
 }
 
 impl<'a, T, V: Display + 'a, F> Display for GridDisplayWithRule<'a, T, V, F>
 where
-    F: for<'p> Fn(&'p T) -> V,
+    F: for<'p> Fn((&'p Point<usize>, &'p T)) -> V,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for y in 0..self.grid.len_y() {
             writeln!(f)?;
             for x in 0..self.grid.len_x() {
-                let value = &self.grid[y][x];
-                let o = (self.rule)(&value);
+                let point = Point { x, y };
+                let value = &self.grid[&point];
+                let o = (self.rule)((&point, value));
                 write!(f, "{}", o)?;
             }
         }

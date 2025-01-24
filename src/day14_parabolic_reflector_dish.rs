@@ -68,8 +68,8 @@ fn print_load_after(mut platform: Platform, target: usize) {
     panic!("max iterations exceeded");
 }
 
-fn display_grid(space: &Option<Rock>) -> char {
-    match space {
+fn display_grid(space: (&Point<usize>, &Option<Rock>)) -> char {
+    match space.1 {
         None => '.',
         Some(Rock::Round) => 'O',
         Some(Rock::Square) => '#',
