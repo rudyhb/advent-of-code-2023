@@ -12,16 +12,17 @@ pub struct Point<T> {
 
 impl Point<usize> {
     #[allow(dead_code)]
+    #[inline]
     pub fn move_in_unchecked(&self, direction: Direction) -> Self {
-        self.move_in(direction).unwrap()
+        self.move_in_times(direction, 1).unwrap()
     }
-    pub fn move_in(&self, direction: Direction) -> Option<Self> {
+    pub fn move_in_times(&self, direction: Direction, times: usize) -> Option<Self> {
         match direction {
             Direction::Up => {
-                if self.y > 0 {
+                if self.y >= times {
                     Some(Self {
                         x: self.x,
-                        y: self.y - 1,
+                        y: self.y - times,
                     })
                 } else {
                     None
@@ -29,12 +30,12 @@ impl Point<usize> {
             }
             Direction::Down => Some(Self {
                 x: self.x,
-                y: self.y + 1,
+                y: self.y + times,
             }),
             Direction::Left => {
-                if self.x > 0 {
+                if self.x >= times {
                     Some(Self {
-                        x: self.x - 1,
+                        x: self.x - times,
                         y: self.y,
                     })
                 } else {
@@ -42,10 +43,14 @@ impl Point<usize> {
                 }
             }
             Direction::Right => Some(Self {
-                x: self.x + 1,
+                x: self.x + times,
                 y: self.y,
             }),
         }
+    }
+    #[inline]
+    pub fn move_in(&self, direction: Direction) -> Option<Self> {
+        self.move_in_times(direction, 1)
     }
     pub fn manhattan_distance(&self, other: &Self) -> usize {
         (self.x.max(other.x) - self.x.min(other.x)) + (self.y.max(other.y) - self.y.min(other.y))

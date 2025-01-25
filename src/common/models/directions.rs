@@ -1,5 +1,6 @@
 use crate::common::models::Point;
 use bitflags::bitflags;
+use std::fmt::{Display, Formatter};
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -50,6 +51,33 @@ impl Direction {
             Direction::Down => Direction::Up,
             Direction::Left => Direction::Right,
             Direction::Right => Direction::Left,
+        }
+    }
+    pub fn turn_right(&self) -> Self {
+        match self {
+            Direction::Up => Direction::Right,
+            Direction::Down => Direction::Left,
+            Direction::Left => Direction::Up,
+            Direction::Right => Direction::Down,
+        }
+    }
+    pub fn turn_left(&self) -> Self {
+        match self {
+            Direction::Up => Direction::Left,
+            Direction::Down => Direction::Right,
+            Direction::Left => Direction::Down,
+            Direction::Right => Direction::Up,
+        }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Direction::Up => write!(f, "^"),
+            Direction::Down => write!(f, "v"),
+            Direction::Left => write!(f, "<"),
+            Direction::Right => write!(f, ">"),
         }
     }
 }

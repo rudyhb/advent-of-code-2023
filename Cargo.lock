@@ -679,7 +679,7 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 [[package]]
 name = "utils"
 version = "0.2.0"
-source = "git+https://github.com/rudyhb/utils.git#0427a79ee966398a251f2d640d850b79c8bd2844"
+source = "git+https://github.com/rudyhb/utils.git#e324794e50e763719b47e18cde57c40eac3b0f9b"
 dependencies = [
  "backon",
  "crossterm",
