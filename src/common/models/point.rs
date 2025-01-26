@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::{Hash, Hasher};
 use utils::a_star::Node;
+use utils::common::NumericWithUnitValue;
 
 #[derive(Clone)]
 pub struct Point<T> {
@@ -107,3 +108,26 @@ impl<T: Ord> Ord for Point<T> {
 }
 
 impl Node for Point<usize> {}
+
+impl<T: NumericWithUnitValue> Point<T> {
+    pub fn move_in_direction_unchecked(&self, direction: Direction) -> Self {
+        match direction {
+            Direction::Up => Self {
+                x: self.x,
+                y: self.y - T::unit(),
+            },
+            Direction::Down => Self {
+                x: self.x,
+                y: self.y + T::unit(),
+            },
+            Direction::Left => Self {
+                x: self.x - T::unit(),
+                y: self.y,
+            },
+            Direction::Right => Self {
+                x: self.x + T::unit(),
+                y: self.y,
+            },
+        }
+    }
+}

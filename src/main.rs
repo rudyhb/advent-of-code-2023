@@ -18,6 +18,7 @@ mod day14_parabolic_reflector_dish;
 mod day15_lens_library;
 mod day16_the_floor_will_be_lava;
 mod day17_clumsy_crucible;
+mod day18_lava_duct_lagoon;
 
 fn main() {
     let mut context = common::Context::default();
@@ -77,5 +78,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day15_lens_library::run,
         day16_the_floor_will_be_lava::run,
         day17_clumsy_crucible::run,
+        day18_lava_duct_lagoon::run,
     ]
 }

@@ -1,6 +1,7 @@
 use crate::common::models::Point;
 use bitflags::bitflags;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -28,6 +29,11 @@ pub enum Direction {
 }
 
 impl Direction {
+    #[allow(dead_code)]
+    #[inline]
+    pub const fn all() -> [Direction; 4] {
+        [Self::Up, Self::Down, Self::Left, Self::Right]
+    }
     pub fn from_vec(from: &Point<usize>, to: &Point<usize>) -> Option<Self> {
         let dx = (to.x as isize) - (from.x as isize);
         let dy = (to.y as isize) - (from.y as isize);
@@ -79,5 +85,19 @@ impl Display for Direction {
             Direction::Left => write!(f, "<"),
             Direction::Right => write!(f, ">"),
         }
+    }
+}
+
+impl FromStr for Direction {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "U" | "u" | "^" => Self::Up,
+            "D" | "d" | "v" | "V" => Self::Down,
+            "L" | "l" | "<" => Self::Left,
+            "R" | "r" | ">" => Self::Right,
+            other => return Err(anyhow::anyhow!("invalid direction '{}'", other)),
+        })
     }
 }
