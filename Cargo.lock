@@ -28,6 +28,7 @@ dependencies = [
  "itertools",
  "log",
  "once_cell",
+ "rayon",
  "regex",
  "strum",
  "strum_macros",
