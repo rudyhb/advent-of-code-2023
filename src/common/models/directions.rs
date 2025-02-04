@@ -29,7 +29,6 @@ pub enum Direction {
 }
 
 impl Direction {
-    #[allow(dead_code)]
     #[inline]
     pub const fn all() -> [Direction; 4] {
         [Self::Up, Self::Down, Self::Left, Self::Right]
