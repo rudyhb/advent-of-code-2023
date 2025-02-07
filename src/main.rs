@@ -22,6 +22,8 @@ mod day18_lava_duct_lagoon;
 mod day19_aplenty;
 mod day20_pulse_propagation;
 mod day21_step_counter;
+mod day22_sand_slabs;
+
 
 fn main() {
     let mut context = common::Context::default();
@@ -85,5 +87,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day19_aplenty::run,
         day20_pulse_propagation::run,
         day21_step_counter::run,
+        day22_sand_slabs::run,
     ]
 }
