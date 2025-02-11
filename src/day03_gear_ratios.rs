@@ -1,4 +1,5 @@
-use crate::common::models::{Grid, DirectionFlag, Point};
+use crate::common::models::grid::GridLike;
+use crate::common::models::{DirectionFlag, Grid, Point};
 use crate::common::{Context, InputProvider};
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;

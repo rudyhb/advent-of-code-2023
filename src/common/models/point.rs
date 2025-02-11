@@ -107,6 +107,15 @@ impl<T: Ord> Ord for Point<T> {
     }
 }
 
+impl<T: Default> Default for Point<T> {
+    fn default() -> Self {
+        Self {
+            x: Default::default(),
+            y: Default::default(),
+        }
+    }
+}
+
 impl Node for Point<usize> {}
 
 impl<T: NumericWithUnitValue> Point<T> {

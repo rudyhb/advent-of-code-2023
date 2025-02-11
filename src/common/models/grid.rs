@@ -4,30 +4,15 @@ use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 
-pub struct Grid<T> {
-    grid: Box<[Box<[T]>]>,
-    len_y: usize,
-    len_x: usize,
-}
-
-impl<T> Grid<T> {
-    #[allow(dead_code)]
-    pub fn new(len_x: usize, len_y: usize) -> Self
-    where
-        T: Default,
-    {
-        Self {
-            grid: (0..len_y)
-                .map(|_| (0..len_x).map(|_| T::default()).collect())
-                .collect(),
-            len_y,
-            len_x,
-        }
-    }
+pub trait GridLike: Sized {
+    type CellType;
+    fn len_x(&self) -> usize;
+    fn len_y(&self) -> usize;
+    fn index_point(&self, i: &Point<usize>) -> &Self::CellType;
     fn is_in_bounds(&self, x: isize, y: isize) -> bool {
-        x >= 0 && x < self.len_x as isize && y >= 0 && y < self.len_y as isize
+        x >= 0 && x < self.len_x() as isize && y >= 0 && y < self.len_y() as isize
     }
-    pub fn neighbors(&self, point: &Point<usize>, directions: DirectionFlag) -> Vec<Point<usize>> {
+    fn neighbors(&self, point: &Point<usize>, directions: DirectionFlag) -> Vec<Point<usize>> {
         let mut neighbors = Vec::new();
         const NEIGHBOR_DELTAS: &[(DirectionFlag, isize, isize)] = &[
             (DirectionFlag::LEFT, -1, 0),
@@ -54,6 +39,66 @@ impl<T> Grid<T> {
         }
 
         neighbors
+    }
+    fn move_in_direction_if(
+        &self,
+        point: &Point<usize>,
+        direction: Direction,
+        destination_condition: impl FnOnce((&Point<usize>, &Self::CellType)) -> bool,
+    ) -> Option<Point<usize>> {
+        point.move_in(direction).and_then(|point| {
+            self.get(&point).and_then(|value| {
+                if destination_condition((&point, value)) {
+                    Some(point)
+                } else {
+                    None
+                }
+            })
+        })
+    }
+    fn get(&self, point: &Point<usize>) -> Option<&Self::CellType> {
+        if point.x < self.len_x() && point.y < self.len_y() {
+            Some(self.index_point(point))
+        } else {
+            None
+        }
+    }
+    fn iter(&self) -> GridIterator<Self> {
+        GridIterator::new(self)
+    }
+    fn iter_rows(&self) -> GridRowIterator<Self> {
+        GridRowIterator::new(self)
+    }
+    fn display_with_rule<V: Display, F>(&self, rule: F) -> GridDisplayWithRule<Self, V, F>
+    where
+        F: for<'p> Fn((&'p Point<usize>, &'p Self::CellType)) -> V,
+    {
+        GridDisplayWithRule {
+            grid: self,
+            rule,
+            _phantom_data: Default::default(),
+        }
+    }
+}
+
+pub struct Grid<T> {
+    grid: Box<[Box<[T]>]>,
+    len_y: usize,
+    len_x: usize,
+}
+
+impl<T> Grid<T> {
+    pub fn new(len_x: usize, len_y: usize) -> Self
+    where
+        T: Default,
+    {
+        Self {
+            grid: (0..len_y)
+                .map(|_| (0..len_x).map(|_| T::default()).collect())
+                .collect(),
+            len_y,
+            len_x,
+        }
     }
     pub fn from_iter<I>(iter: I) -> Self
     where
@@ -89,43 +134,6 @@ impl<T> Grid<T> {
         );
         Ok(Self { grid, len_x, len_y })
     }
-    pub fn move_in_direction_if(
-        &self,
-        point: &Point<usize>,
-        direction: Direction,
-        destination_condition: impl FnOnce((&Point<usize>, &T)) -> bool,
-    ) -> Option<Point<usize>> {
-        point.move_in(direction).and_then(|point| {
-            self.get(&point).and_then(|value| {
-                if destination_condition((&point, value)) {
-                    Some(point)
-                } else {
-                    None
-                }
-            })
-        })
-    }
-    pub fn get(&self, point: &Point<usize>) -> Option<&T> {
-        if point.x < self.len_x && point.y < self.len_y {
-            Some(&self[point])
-        } else {
-            None
-        }
-    }
-    #[allow(dead_code)]
-    pub fn len_x(&self) -> usize {
-        self.len_x
-    }
-    #[allow(dead_code)]
-    pub fn len_y(&self) -> usize {
-        self.len_y
-    }
-    pub fn iter(&self) -> GridIterator<T> {
-        GridIterator::new(self)
-    }
-    pub fn iter_rows(&self) -> GridRowIterator<T> {
-        GridRowIterator::new(self)
-    }
     pub fn swap(&mut self, left: &Point<usize>, right: &Point<usize>) {
         let left: *mut T = &mut self[left];
         let right: *mut T = &mut self[right];
@@ -133,27 +141,38 @@ impl<T> Grid<T> {
             std::ptr::swap(left, right);
         }
     }
-    pub fn display_with_rule<V: Display, F>(&self, rule: F) -> GridDisplayWithRule<T, V, F>
-    where
-        F: for<'p> Fn((&'p Point<usize>, &'p T)) -> V,
-    {
-        GridDisplayWithRule {
-            grid: self,
-            rule,
-            _phantom_data: Default::default(),
-        }
+}
+
+impl<T> GridLike for Grid<T> {
+    type CellType = T;
+
+    #[inline]
+    fn len_x(&self) -> usize {
+        self.len_x
+    }
+
+    #[inline]
+    fn len_y(&self) -> usize {
+        self.len_y
+    }
+
+    #[inline]
+    fn index_point(&self, i: &Point<usize>) -> &Self::CellType {
+        &self[i]
     }
 }
 
 impl<T> Index<usize> for Grid<T> {
     type Output = [T];
 
+    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         &self.grid[index]
     }
 }
 
 impl<T> IndexMut<usize> for Grid<T> {
+    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.grid[index]
     }
@@ -162,33 +181,97 @@ impl<T> IndexMut<usize> for Grid<T> {
 impl<T> Index<&Point<usize>> for Grid<T> {
     type Output = T;
 
+    #[inline]
     fn index(&self, index: &Point<usize>) -> &Self::Output {
         &self.grid[index.y][index.x]
     }
 }
 
 impl<T> IndexMut<&Point<usize>> for Grid<T> {
+    #[inline]
     fn index_mut(&mut self, index: &Point<usize>) -> &mut Self::Output {
         &mut self.grid[index.y][index.x]
     }
 }
 
-impl<T: Default> Default for Point<T> {
-    fn default() -> Self {
-        Self {
-            x: Default::default(),
-            y: Default::default(),
+pub struct GridB<'a> {
+    data: &'a [u8],
+    len_y: usize,
+    len_x: usize,
+}
+
+impl<'a> GridB<'a> {
+    pub fn new(s: &'a str) -> Self {
+        const NEWLINE_LEN: usize = '\n'.len_utf8();
+        let data = s.trim().as_bytes();
+        let len_x = data.iter().position(|&c| c == b'\n').unwrap_or(s.len());
+        let len_y = (s.len() + NEWLINE_LEN) / (len_x + NEWLINE_LEN); // s.len() + 1 because of non-existing last \n
+        assert_eq!(
+            s.len() + NEWLINE_LEN,
+            (len_x + NEWLINE_LEN) * len_y,
+            "all rows should be same size"
+        );
+
+        Self { data, len_y, len_x }
+    }
+    pub fn display_overriding<'b, V: Display + 'b, F>(
+        &'b self,
+        overrides: F,
+    ) -> GridBDisplay<'b, V, F>
+    where
+        F: for<'p> Fn(&'p Point<usize>) -> Option<V>,
+    {
+        GridBDisplay {
+            grid: self,
+            overrides,
         }
     }
 }
 
-pub struct GridIterator<'a, T> {
+impl GridLike for GridB<'_> {
+    type CellType = u8;
+
+    #[inline]
+    fn len_x(&self) -> usize {
+        self.len_x
+    }
+
+    #[inline]
+    fn len_y(&self) -> usize {
+        self.len_y
+    }
+
+    #[inline]
+    fn index_point(&self, i: &Point<usize>) -> &Self::CellType {
+        &self[i]
+    }
+}
+
+impl Index<usize> for GridB<'_> {
+    type Output = [u8];
+
+    #[inline]
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.data[index * (self.len_x + 1)..index * (self.len_x + 1) + self.len_x]
+    }
+}
+
+impl Index<&Point<usize>> for GridB<'_> {
+    type Output = u8;
+
+    #[inline]
+    fn index(&self, index: &Point<usize>) -> &Self::Output {
+        &self[index.y][index.x]
+    }
+}
+
+pub struct GridIterator<'a, T: GridLike> {
     iterator: GridRowIterator<'a, T>,
     row: Option<RowIterator<'a, T>>,
 }
 
-impl<'a, T> GridIterator<'a, T> {
-    fn new(grid: &'a Grid<T>) -> Self {
+impl<'a, T: GridLike> GridIterator<'a, T> {
+    fn new(grid: &'a T) -> Self {
         Self {
             iterator: GridRowIterator::new(grid),
             row: None,
@@ -196,8 +279,8 @@ impl<'a, T> GridIterator<'a, T> {
     }
 }
 
-impl<'a, T> Iterator for GridIterator<'a, T> {
-    type Item = (Point<usize>, &'a T);
+impl<'a, T: GridLike> Iterator for GridIterator<'a, T> {
+    type Item = (Point<usize>, &'a T::CellType);
 
     fn next(&mut self) -> Option<Self::Item> {
         loop {
@@ -217,22 +300,22 @@ impl<'a, T> Iterator for GridIterator<'a, T> {
     }
 }
 
-pub struct GridRowIterator<'a, T> {
-    grid: &'a Grid<T>,
+pub struct GridRowIterator<'a, T: GridLike> {
+    grid: &'a T,
     y: usize,
 }
 
-impl<'a, T> GridRowIterator<'a, T> {
-    fn new(grid: &'a Grid<T>) -> Self {
+impl<'a, T: GridLike> GridRowIterator<'a, T> {
+    fn new(grid: &'a T) -> Self {
         Self { grid, y: 0 }
     }
 }
 
-impl<'a, T> Iterator for GridRowIterator<'a, T> {
+impl<'a, T: GridLike> Iterator for GridRowIterator<'a, T> {
     type Item = (usize, RowIterator<'a, T>);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.y < self.grid.len_y {
+        if self.y < self.grid.len_y() {
             let y = self.y;
             self.y += 1;
             Some((y, RowIterator::new(self.grid, y)))
@@ -240,30 +323,41 @@ impl<'a, T> Iterator for GridRowIterator<'a, T> {
             None
         }
     }
+    fn last(self) -> Option<Self::Item>
+    where
+        Self: Sized,
+    {
+        if self.grid.len_y() > 0 {
+            let y = self.grid.len_y() - 1;
+            Some((y, RowIterator::new(self.grid, y)))
+        } else {
+            None
+        }
+    }
 }
 
-pub struct RowIterator<'a, T> {
-    grid: &'a Grid<T>,
+pub struct RowIterator<'a, T: GridLike> {
+    grid: &'a T,
     y: usize,
     x: usize,
 }
 
-impl<'a, T> RowIterator<'a, T> {
-    fn new(grid: &'a Grid<T>, y: usize) -> Self {
+impl<'a, T: GridLike> RowIterator<'a, T> {
+    fn new(grid: &'a T, y: usize) -> Self {
         Self { grid, y, x: 0 }
     }
 }
 
-impl<'a, T> Iterator for RowIterator<'a, T> {
-    type Item = (Point<usize>, &'a T);
+impl<'a, T: GridLike> Iterator for RowIterator<'a, T> {
+    type Item = (Point<usize>, &'a T::CellType);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.x < self.grid.len_x {
+        if self.x < self.grid.len_x() {
             let point = Point {
                 x: self.x,
                 y: self.y,
             };
-            let value = &self.grid[&point];
+            let value = &self.grid.index_point(&point);
             self.x += 1;
             Some((point, value))
         } else {
@@ -360,25 +454,56 @@ where
     }
 }
 
-pub struct GridDisplayWithRule<'a, T, V: 'a, F>
+pub struct GridBDisplay<'a, V: 'a, F>
 where
-    F: for<'p> Fn((&'p Point<usize>, &'p T)) -> V,
+    F: for<'p> Fn(&'p Point<usize>) -> Option<V>,
 {
-    grid: &'a Grid<T>,
-    rule: F,
-    _phantom_data: PhantomData<V>,
+    grid: &'a GridB<'a>,
+    overrides: F,
 }
 
-impl<'a, T, V: Display + 'a, F> Display for GridDisplayWithRule<'a, T, V, F>
+impl<'a, V: Display + 'a, F> Display for GridBDisplay<'a, V, F>
 where
-    F: for<'p> Fn((&'p Point<usize>, &'p T)) -> V,
+    F: for<'p> Fn(&'p Point<usize>) -> Option<V>,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         for y in 0..self.grid.len_y() {
             writeln!(f)?;
             for x in 0..self.grid.len_x() {
                 let point = Point { x, y };
-                let value = &self.grid[&point];
+                if let Some(o) = (self.overrides)(&point) {
+                    write!(f, "{}", o)?;
+                } else {
+                    let &value = self.grid.get(&point).unwrap();
+                    write!(f, "{}", value as char)?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+pub struct GridDisplayWithRule<'a, T, V: 'a, F>
+where
+    T: GridLike,
+    F: for<'p> Fn((&'p Point<usize>, &'p T::CellType)) -> V,
+{
+    grid: &'a T,
+    rule: F,
+    _phantom_data: PhantomData<V>,
+}
+
+impl<'a, T, V: Display + 'a, F> Display for GridDisplayWithRule<'a, T, V, F>
+where
+    T: GridLike,
+    F: for<'p> Fn((&'p Point<usize>, &'p T::CellType)) -> V,
+{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for y in 0..self.grid.len_y() {
+            writeln!(f)?;
+            for x in 0..self.grid.len_x() {
+                let point = Point { x, y };
+                let value = &self.grid.index_point(&point);
                 let o = (self.rule)((&point, value));
                 write!(f, "{}", o)?;
             }
@@ -402,6 +527,23 @@ mod tests {
         assert_eq!(25, grid.iter().count());
         for (i, item) in grid.iter() {
             println!("{}, {}", i, item);
+        }
+    }
+
+    #[test]
+    fn test_grid_iter_bytes() {
+        let input = ".....
+.012.
+.1.3.
+.234.
+.....";
+        let grid = GridB::new(input);
+        assert_eq!(25, grid.iter().count());
+
+        let values: Vec<_> = input.chars().filter(|c| !c.is_whitespace()).collect();
+
+        for ((_, &left), &right) in grid.iter().zip(values.iter()) {
+            assert_eq!(left as char, right);
         }
     }
 

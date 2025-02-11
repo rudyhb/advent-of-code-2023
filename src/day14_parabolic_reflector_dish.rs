@@ -1,3 +1,4 @@
+use crate::common::models::grid::GridLike;
 use crate::common::models::{Direction, Grid, Point};
 use crate::common::{Context, InputProvider};
 use std::collections::{HashMap, VecDeque};

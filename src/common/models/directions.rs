@@ -33,6 +33,10 @@ impl Direction {
     pub const fn all() -> [Direction; 4] {
         [Self::Up, Self::Down, Self::Left, Self::Right]
     }
+    #[inline]
+    pub const fn all_ref() -> &'static [Direction] {
+        &[Self::Up, Self::Down, Self::Left, Self::Right]
+    }
     pub fn from_vec(from: &Point<usize>, to: &Point<usize>) -> Option<Self> {
         let dx = (to.x as isize) - (from.x as isize);
         let dy = (to.y as isize) - (from.y as isize);

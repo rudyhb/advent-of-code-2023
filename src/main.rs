@@ -23,6 +23,7 @@ mod day19_aplenty;
 mod day20_pulse_propagation;
 mod day21_step_counter;
 mod day22_sand_slabs;
+mod day23_a_long_walk;
 
 
 fn main() {
@@ -88,5 +89,6 @@ fn days() -> &'static [fn(&mut common::Context)] {
         day20_pulse_propagation::run,
         day21_step_counter::run,
         day22_sand_slabs::run,
+        day23_a_long_walk::run,
     ]
 }
