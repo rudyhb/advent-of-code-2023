@@ -1,16 +1,16 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-
-    let input = context.get_input();
-
-    let races = parse(&input);
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["Time:      7  15   30
+Distance:  9  40  200"])
+}
+pub fn run(input: &str) {
+    let races = parse(input);
 
     let product: u64 = races.iter().map(ways_to_beat_record).product();
     println!("product part 1: {}", product);
 
-    let race = parse2(&input);
+    let race = parse2(input);
     let ways = ways_to_beat_record(&race);
     println!("ways to beat big race: {}", ways);
 }
@@ -69,11 +69,4 @@ fn parse2(input: &str) -> Race {
         time: combine_numbers(),
         best_distance: combine_numbers(),
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["Time:      7  15   30
-Distance:  9  40  200"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

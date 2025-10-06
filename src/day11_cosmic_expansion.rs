@@ -1,13 +1,22 @@
+use crate::common::day_setup::Day;
 use crate::common::models::Point;
-use crate::common::{Context, InputProvider};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["...#......
+.......#..
+#.........
+..........
+......#...
+.#........
+.........#
+..........
+.......#..
+#...#....."])
+}
+pub fn run(input: &str) {
     let mut universe: Universe = input.parse().unwrap();
     println!("part 1 sum of lengths: {}", universe.sum_distances());
     //universe.set_expansion(10);
@@ -73,28 +82,9 @@ impl FromStr for Universe {
         Ok(Self::new(s.lines().enumerate().flat_map(|(y, line)| {
             line.chars().enumerate().filter_map(
                 move |(x, c)| {
-                    if c == '#' {
-                        Some(Point { x, y })
-                    } else {
-                        None
-                    }
+                    if c == '#' { Some(Point { x, y }) } else { None }
                 },
             )
         })))
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["...#......
-.......#..
-#.........
-..........
-......#...
-.#........
-.........#
-..........
-.......#..
-#...#....."]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

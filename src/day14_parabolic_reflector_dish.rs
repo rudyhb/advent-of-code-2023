@@ -1,13 +1,22 @@
+use crate::common::day_setup::Day;
 use crate::common::models::grid::GridLike;
 use crate::common::models::{Direction, Grid, Point};
-use crate::common::{Context, InputProvider};
 use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["O....#....
+O.OO#....#
+.....##...
+OO.#O....O
+.O.....O#.
+O.#..O.#.#
+..O..#O..O
+.......O..
+#....###..
+#OO..#...."])
+}
+pub fn run(input: &str) {
     let mut platform: Platform = input.parse().unwrap();
     log::debug!(
         "pre-tilt:\n{}",
@@ -110,7 +119,7 @@ impl Platform {
     pub fn total_load(&self) -> u64 {
         self.grid
             .iter()
-            .filter(|(_, &val)| val == Some(Rock::Round))
+            .filter(|(_, val)| *val == &Some(Rock::Round))
             .map(|(point, _)| (self.grid.len_y() - point.y) as u64)
             .sum()
     }
@@ -183,19 +192,4 @@ impl FromStr for Platform {
             }))?,
         })
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["O....#....
-O.OO#....#
-.....##...
-OO.#O....O
-.O.....O#.
-O.#..O.#.#
-..O..#O..O
-.......O..
-#....###..
-#OO..#...."]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

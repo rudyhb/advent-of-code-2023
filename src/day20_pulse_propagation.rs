@@ -1,5 +1,5 @@
+use crate::common::day_setup::Day;
 use crate::common::helpers::least_common_multiple_for;
-use crate::common::{Context, InputProvider};
 use anyhow::{anyhow, Context as AnyhowContext};
 use itertools::Itertools;
 use std::collections::{BTreeMap, HashMap, VecDeque};
@@ -7,11 +7,15 @@ use std::iter::Sum;
 use std::ops::{AddAssign, MulAssign};
 use std::str::FromStr;
 use strum_macros::EnumString;
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["broadcaster -> a
+%a -> inv, con
+&inv -> b
+%b -> con
+&con -> output"])
+}
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn run(input: &str) {
     let times = 1_000;
 
     let mut network: Network = input.parse().unwrap();
@@ -72,7 +76,7 @@ impl Network {
             .outputs_by_module
             .iter()
             .enumerate()
-            .filter(|(_, outputs)| outputs.iter().any(|&o| o == module))
+            .filter(|(_, outputs)| outputs.contains(&module))
             .map(|(i, _)| i)
             .collect::<Vec<_>>()[..]
         else {
@@ -163,7 +167,7 @@ impl Network {
         message: &Message,
         output_message_collector: &mut VecDeque<Message>,
     ) {
-        if let Some(output) = self.state.send_message(&message) {
+        if let Some(output) = self.state.send_message(message) {
             let from = message.to;
             for &to in self.outputs_by_module[from].iter() {
                 output_message_collector.push_back(Message {
@@ -417,14 +421,4 @@ impl FromStr for Network {
 
         Ok(Self::new(names, outputs_by_module, modules))
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["broadcaster -> a
-%a -> inv, con
-&inv -> b
-%b -> con
-&con -> output"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

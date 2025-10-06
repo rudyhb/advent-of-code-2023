@@ -1,4 +1,4 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use anyhow::Context as AnyhowContext;
 use rayon::iter::IntoParallelRefIterator;
 use rayon::iter::ParallelIterator;
@@ -6,10 +6,27 @@ use std::borrow::Cow;
 use std::collections::{BTreeSet, HashMap};
 use std::ops::RangeInclusive;
 use std::str::FromStr;
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["px{a<2006:qkq,m>2090:A,rfg}
+pv{a>1716:R,A}
+lnx{m>1548:A,A}
+rfg{s<537:gd,x>2440:R,A}
+qs{s>3448:A,lnx}
+qkq{x<1416:A,crn}
+crn{x>2662:A,R}
+in{s<1351:px,qqz}
+qqz{s>2770:qs,m<1801:hdj,R}
+gd{a>3333:R,R}
+hdj{m>838:A,pv}
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
+{x=787,m=2655,a=1222,s=2876}
+{x=1679,m=44,a=2067,s=496}
+{x=2036,m=264,a=79,s=2244}
+{x=2461,m=1339,a=466,s=291}
+{x=2127,m=1623,a=2188,s=1013}"])
+}
+
+pub fn run(input: &str) {
     let mut inputs = input.split("\n\n");
 
     let workflows: HashMap<Cow<'static, str>, Workflow> = inputs
@@ -182,7 +199,7 @@ struct Workflow {
 }
 
 impl Workflow {
-    pub fn follow(&self, part: &Part) -> Destination {
+    pub fn follow(&self, part: &Part) -> Destination<'_> {
         for rule in self.rules.iter() {
             if let Some(destination) = rule.try_follow(part) {
                 return destination;
@@ -244,7 +261,7 @@ struct Rule {
 }
 
 impl Rule {
-    pub fn try_follow(&self, part: &Part) -> Option<Destination> {
+    pub fn try_follow(&self, part: &Part) -> Option<Destination<'_>> {
         if self
             .operation
             .operate(part.rating(self.category), self.check_value)
@@ -376,26 +393,4 @@ impl FromStr for Part {
             Ok((category, value))
         }))
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["px{a<2006:qkq,m>2090:A,rfg}
-pv{a>1716:R,A}
-lnx{m>1548:A,A}
-rfg{s<537:gd,x>2440:R,A}
-qs{s>3448:A,lnx}
-qkq{x<1416:A,crn}
-crn{x>2662:A,R}
-in{s<1351:px,qqz}
-qqz{s>2770:qs,m<1801:hdj,R}
-gd{a>3333:R,R}
-hdj{m>838:A,pv}
-
-{x=787,m=2655,a=1222,s=2876}
-{x=1679,m=44,a=2067,s=496}
-{x=2036,m=264,a=79,s=2244}
-{x=2461,m=1339,a=466,s=291}
-{x=2127,m=1623,a=2188,s=1013}"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

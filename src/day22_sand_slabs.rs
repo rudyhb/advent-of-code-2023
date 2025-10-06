@@ -1,14 +1,20 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::{Index, IndexMut};
 use std::str::FromStr;
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["1,0,1~1,2,1
+0,0,2~2,0,2
+0,2,3~2,2,3
+0,0,4~0,2,4
+2,0,5~2,2,5
+0,1,6~2,1,6
+1,1,8~1,1,9"])
+}
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn run(input: &str) {
     let bricks: Vec<Brick> = input.lines().map(|line| line.parse().unwrap()).collect();
     let tower = BrickTower::build_from(bricks);
     println!(
@@ -77,7 +83,7 @@ impl BrickTower {
             .collect();
         let max = max_supporters
             .iter()
-            .map(|(&z, _)| z)
+            .map(|(z, _)| **z)
             .max()
             .unwrap_or_default(); // default 0 is floor
         max_supporters.retain(|val| *val.0 == max);
@@ -203,10 +209,11 @@ impl Brick {
                 unreachable!()
                 //vec![self.position.clone()]
             } else {
-                vec![self
-                    .position
-                    .clone()
-                    .translate(self.size - 1, self.extend_direction)]
+                vec![
+                    self.position
+                        .clone()
+                        .translate(self.size - 1, self.extend_direction),
+                ]
             }
         } else {
             self.get_all_points()
@@ -339,16 +346,4 @@ impl FromStr for Coord {
             z: z.parse()?,
         })
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["1,0,1~1,2,1
-0,0,2~2,0,2
-0,2,3~2,2,3
-0,0,4~0,2,4
-2,0,5~2,2,5
-0,1,6~2,1,6
-1,1,8~1,1,9"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

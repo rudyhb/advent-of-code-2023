@@ -1,5 +1,5 @@
+use crate::common::day_setup::Day;
 use crate::common::helpers::least_common_multiple_for;
-use crate::common::{Context, InputProvider};
 use anyhow::Context as AnyhowContext;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -7,10 +7,27 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Formatter};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&[
+        "LLR
 
+AAA = (BBB, BBB)
+BBB = (AAA, ZZZ)
+ZZZ = (ZZZ, ZZZ)",
+        "LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)",
+    ])
+}
+
+pub fn run(input: &str) {
     let network: Network = input.parse().unwrap();
 
     if network.nodes.contains_key("AAA") {
@@ -194,26 +211,4 @@ impl FromStr for Network {
 
         Ok(Self::new(instructions, nodes.into_iter()))
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    [
-        "LLR
-
-AAA = (BBB, BBB)
-BBB = (AAA, ZZZ)
-ZZZ = (ZZZ, ZZZ)",
-        "LR
-
-11A = (11B, XXX)
-11B = (XXX, 11Z)
-11Z = (11B, XXX)
-22A = (22B, XXX)
-22B = (22C, 22C)
-22C = (22Z, 22Z)
-22Z = (22B, 22B)
-XXX = (XXX, XXX)",
-    ]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

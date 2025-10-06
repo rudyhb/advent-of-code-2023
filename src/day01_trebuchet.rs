@@ -1,11 +1,24 @@
-﻿use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use std::collections::HashMap;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&[
+        "1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet",
+        "two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen",
+        "nineight",
+    ])
+}
 
-    let input = context.get_input();
-
+fn run(input: &str) {
     let mut sum = 0;
     for word in input.lines() {
         let first = if let Some(first) = word.chars().find(|c| c.is_numeric()) {
@@ -13,7 +26,7 @@ pub fn run(context: &mut Context) {
         } else {
             continue;
         };
-        let last = word.chars().filter(|c| c.is_numeric()).last().unwrap();
+        let last = word.chars().filter(|c| c.is_numeric()).next_back().unwrap();
         let value = format!("{}{}", first, last).parse::<u32>().unwrap();
         sum += value;
     }
@@ -48,7 +61,7 @@ pub fn run(context: &mut Context) {
                 value.to_string()
             } else if let Some(value) = map
                 .iter()
-                .filter(|(&text, _)| word.starts_with(text))
+                .filter(|(text, _)| word.starts_with(*text))
                 .map(|(_, value)| value)
                 .next()
             {
@@ -71,23 +84,4 @@ pub fn run(context: &mut Context) {
     }
 
     println!("part 2 sum: {}", sum);
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    [
-        "1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet",
-        "two1nine
-eightwothree
-abcone2threexyz
-xtwone3four
-4nineeightseven2
-zoneight234
-7pqrstsixteen",
-        "nineight",
-    ]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

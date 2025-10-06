@@ -1,12 +1,15 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use anyhow::Context as AnyhowContext;
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"])
+}
+pub fn run(input: &str) {
     let games: Vec<Game> = input.lines().map(|line| line.parse().unwrap()).collect();
     let set = Set {
         red: 12,
@@ -104,14 +107,4 @@ impl FromStr for Game {
 
         Ok(Self { id, sets })
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

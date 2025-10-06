@@ -5,18 +5,13 @@ use std::hash::{Hash, Hasher};
 use utils::a_star::Node;
 use utils::common::NumericWithUnitValue;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Point<T> {
     pub x: T,
     pub y: T,
 }
 
 impl Point<usize> {
-    #[allow(dead_code)]
-    #[inline]
-    pub fn move_in_unchecked(&self, direction: Direction) -> Self {
-        self.move_in_times(direction, 1).unwrap()
-    }
     pub fn move_in_times(&self, direction: Direction, times: usize) -> Option<Self> {
         match direction {
             Direction::Up => {
@@ -49,7 +44,7 @@ impl Point<usize> {
             }),
         }
     }
-    #[inline]
+
     pub fn move_in(&self, direction: Direction) -> Option<Self> {
         self.move_in_times(direction, 1)
     }

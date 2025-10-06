@@ -1,19 +1,19 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use std::collections::HashMap;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7"])
+}
+pub fn run(input: &str) {
     let sum: u64 = input
         .split(",")
         .map(|line| <&str as Into<AsciiString>>::into(line).get_hash() as u64)
         .sum();
     println!("part 1 sum: {}", sum);
 
-    solve(&input);
+    solve(input);
 }
 
 fn solve(input: &str) {
@@ -249,10 +249,4 @@ impl Debug for LensBoxes {
         }
         Ok(())
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7"]
-        .into_iter()
-        .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

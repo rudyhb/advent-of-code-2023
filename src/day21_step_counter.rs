@@ -1,13 +1,24 @@
+use crate::common::day_setup::{AppContext, Day};
 use crate::common::models::grid::GridLike;
 use crate::common::models::{Direction, Grid, Point};
-use crate::common::{Context, InputProvider};
 use colored::Colorize;
 use std::collections::HashSet;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
+pub fn day() -> Day {
+    Day::custom(run).with_test_inputs(&["...........
+.....###.#.
+.###.##..#.
+..#.#...#..
+....#.#....
+.##..S####.
+.##..#...#.
+.......##..
+.##.#.####.
+.##..##.##.
+..........."])
+}
+pub fn run(context: &AppContext) {
     let input = context.get_input();
-
     let steps: u64 = if context.is_testing() { 6 } else { 64 };
 
     let (garden, start_location) = parse(&input);
@@ -38,7 +49,10 @@ pub fn run(context: &mut Context) {
 
 fn solve_geometrically(steps: u64, garden: &Garden) -> u64 {
     assert!(
-        garden.0.iter().filter(|(point, _)| point.x == 0 || point.y == 0)
+        garden
+            .0
+            .iter()
+            .filter(|(point, _)| point.x == 0 || point.y == 0)
             .all(|(_, &space)| space == Space::Plot),
         "only works in the case that the horizontal and vertical axes are empty. Solution looks like a diamond"
     );
@@ -82,10 +96,12 @@ fn solve_geometrically(steps: u64, garden: &Garden) -> u64 {
             .count() as u64
     };
 
-    same_parity_full * visited_with_parity(steps % 2 == 1, &visited_plots)
-        + other_parity_full * visited_with_parity(steps % 2 == 0, &visited_plots)
-        + other_parity_outer_corners * visited_with_parity(steps % 2 == 0, &visited_corner_plots)
-        - same_parity_outer_corners * visited_with_parity(steps % 2 == 1, &visited_corner_plots)
+    same_parity_full * visited_with_parity(!steps.is_multiple_of(2), &visited_plots)
+        + other_parity_full * visited_with_parity(steps.is_multiple_of(2), &visited_plots)
+        + other_parity_outer_corners
+            * visited_with_parity(steps.is_multiple_of(2), &visited_corner_plots)
+        - same_parity_outer_corners
+            * visited_with_parity(!steps.is_multiple_of(2), &visited_corner_plots)
 }
 
 struct Garden(Grid<Space>);
@@ -161,14 +177,14 @@ impl Garden {
     ) -> impl Iterator<Item = Point<usize>> + use<'_, T> {
         points.filter(|point| self.is_corner_point(&self.map_point_to_midpoint(point)))
     }
-    #[inline]
+
     fn map_point_to_midpoint(&self, point: &Point<usize>) -> Point<i64> {
         Point {
             x: point.x as i64 - self.half_len() as i64,
             y: point.y as i64 - self.half_len() as i64,
         }
     }
-    #[inline]
+
     fn is_corner_point(&self, point_centered_at_midpoint: &Point<i64>) -> bool {
         point_centered_at_midpoint.x.abs() + point_centered_at_midpoint.y.abs()
             > self.half_len() as i64
@@ -233,20 +249,4 @@ impl ParityXor for Point<usize> {
     fn parity_xor(&self) -> bool {
         (self.x % 2 == 1) != (self.y % 2 == 1)
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["...........
-.....###.#.
-.###.##..#.
-..#.#...#..
-....#.#....
-.##..S####.
-.##..#...#.
-.......##..
-.##.#.####.
-.##..##.##.
-..........."]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

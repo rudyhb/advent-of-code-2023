@@ -1,15 +1,19 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use anyhow::Context as AnyhowContext;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["32T3K 765
+T55J5 684
+KK677 28
+KTJJT 220
+QQQJA 483"])
+}
 
-    let input = context.get_input();
-
+pub fn run(input: &str) {
     let mut hands: Vec<Hand> = input
         .lines()
         .map(|line| line.parse())
@@ -251,14 +255,4 @@ impl Display for Hand {
         }
         Ok(())
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["32T3K 765
-T55J5 684
-KK677 28
-KTJJT 220
-QQQJA 483"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

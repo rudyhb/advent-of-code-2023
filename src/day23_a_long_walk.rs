@@ -1,15 +1,38 @@
+use crate::common::day_setup::Day;
 use crate::common::models::grid::{GridB, GridLike};
 use crate::common::models::{Direction, Point};
-use crate::common::{Context, InputProvider};
 use colored::Colorize;
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-    let map = Map::new(&input);
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["#.#####################
+#.......#########...###
+#######.#########.#.###
+###.....#.>.>.###.#.###
+###v#####.#v#.###.#.###
+###.>...#.#.#.....#...#
+###v###.#.#.#########.#
+###...#.#.#.......#...#
+#####.#.#.#######.#.###
+#.....#.#.#.......#...#
+#.#####.#.#.#########v#
+#.#...#...#...###...>.#
+#.#.#v#######v###.###v#
+#...#.>.#...>.>.#.###.#
+#####v#.#.###v#.#.###.#
+#.....#...#...#.#.#...#
+#.#########.###.#.#.###
+#...###...#...#...#.###
+###.###.#.###v#####v###
+#...#...#.#.>.>.#.>.###
+#.###.###.#.###.#.#v###
+#.....###...###...#...#
+#####################.#"])
+}
+pub fn run(input: &str) {
+    let map = Map::new(input);
 
     let longest_hike = map.longest_hike();
     println!("part 1: longest hike = {}", longest_hike);
@@ -35,7 +58,7 @@ impl<'a> Map<'a> {
             .next()
             .unwrap()
             .1
-            .find(|(_, &val)| val == b'.')
+            .find(|(_, val)| **val == b'.')
             .expect("cannot find start position")
             .0;
         let end = grid
@@ -43,17 +66,17 @@ impl<'a> Map<'a> {
             .last()
             .unwrap()
             .1
-            .find(|(_, &val)| val == b'.')
+            .find(|(_, val)| **val == b'.')
             .expect("cannot find start position")
             .0;
         Self { grid, start, end }
     }
     pub fn longest_hike(&self) -> usize {
-        solve::<false>(self.start.clone(), Direction::Down, self)
+        solve::<false>(self.start, Direction::Down, self)
     }
     #[allow(dead_code)]
     pub fn longest_hike_no_slippery_slopes(&self) -> usize {
-        solve::<true>(self.start.clone(), Direction::Down, self)
+        solve::<true>(self.start, Direction::Down, self)
     }
     pub fn print_with_visited(&self, visited: &HashSet<Point<usize>>) {
         println!(
@@ -214,13 +237,13 @@ impl Network {
 
         let mut reverse_mappings: HashMap<usize, ReverseMap> = HashMap::default();
 
-        for (point, (index, directions)) in node_coordinates.iter() {
-            let mut rev_map = (point.clone(), HashMap::new());
+        for (&point, (index, directions)) in node_coordinates.iter() {
+            let mut rev_map = (point, HashMap::new());
             let connections: Vec<Connection> = directions
                 .iter()
                 .map(|&dir| {
                     let mut count = 0;
-                    let line = Line::<true>::follow_line(point.clone(), dir, map, |_| {
+                    let line = Line::<true>::follow_line(point, dir, map, |_| {
                         count += 1;
                     });
                     let other = node_coordinates
@@ -262,8 +285,8 @@ impl Network {
                     .get(&window[1])
                     .expect("cannot find direction when reconstructing path");
                 let mut visited = HashSet::new();
-                Line::<true>::follow_line(left.clone(), *dir, map, |m| {
-                    visited.insert(m.clone());
+                Line::<true>::follow_line(*left, *dir, map, |m| {
+                    visited.insert(m);
                 });
                 visited
             })
@@ -276,7 +299,7 @@ fn solve<const ALL_DIR: bool>(start: Point<usize>, start_direction: Direction, m
     let max_possible = map
         .grid
         .iter()
-        .filter(|(_, &val)| val as char != '#')
+        .filter(|(_, val)| **val as char != '#')
         .count();
 
     log::debug!(
@@ -364,7 +387,7 @@ impl<const ALL_DIR: bool> Path<ALL_DIR> {
                     .move_in_direction_if(&self.current.right, direction, |(_, &val)| val != b'#')
                     .map(|_| direction)
             })
-            .map(|direction| Line::build_from(self.current.right.clone(), direction, map))
+            .map(|direction| Line::build_from(self.current.right, direction, map))
             .filter(|next| !self.lines.contains(next))
             .map(|next| self.make_next(next))
             .collect()
@@ -391,8 +414,8 @@ impl<const ALL_DIR: bool> Line<ALL_DIR> {
     }
     pub fn get_members(&self, map: &Map) -> HashSet<Point<usize>> {
         let mut members = HashSet::new();
-        let line = Self::follow_line(self.left.clone(), self.left_dir, map, |m| {
-            members.insert(m.clone());
+        let line = Self::follow_line(self.left, self.left_dir, map, |m| {
+            members.insert(m);
         });
         assert_eq!(&line, self);
         members
@@ -404,7 +427,7 @@ impl<const ALL_DIR: bool> Line<ALL_DIR> {
         mut on_new_member: F,
     ) -> Self
     where
-        F: FnMut(&Point<usize>),
+        F: FnMut(Point<usize>),
     {
         let mut line = Self {
             right: start.move_in_direction_unchecked(start_direction),
@@ -412,8 +435,8 @@ impl<const ALL_DIR: bool> Line<ALL_DIR> {
             left_dir: start_direction,
             right_dir: start_direction.invert(),
         };
-        on_new_member(&line.left);
-        on_new_member(&line.right);
+        on_new_member(line.left);
+        on_new_member(line.right);
 
         loop {
             let directions = line.next_directions(map);
@@ -428,7 +451,7 @@ impl<const ALL_DIR: bool> Line<ALL_DIR> {
                 .collect();
             if next.len() == 1 {
                 let (direction, point) = next.into_iter().next().unwrap();
-                on_new_member(&point);
+                on_new_member(point);
                 line.right_dir = direction.invert();
                 line.right = point;
             } else {
@@ -472,32 +495,4 @@ impl<const ALL_DIR: bool> Hash for Line<ALL_DIR> {
             self.left.hash(state);
         }
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["#.#####################
-#.......#########...###
-#######.#########.#.###
-###.....#.>.>.###.#.###
-###v#####.#v#.###.#.###
-###.>...#.#.#.....#...#
-###v###.#.#.#########.#
-###...#.#.#.......#...#
-#####.#.#.#######.#.###
-#.....#.#.#.......#...#
-#.#####.#.#.#########v#
-#.#...#...#...###...>.#
-#.#.#v#######v###.###v#
-#...#.>.#...>.>.#.###.#
-#####v#.#.###v#.#.###.#
-#.....#...#...#.#.#...#
-#.#########.###.#.#.###
-#...###...#...#...#.###
-###.###.#.###v#####v###
-#...#...#.#.>.>.#.>.###
-#.###.###.#.###.#.#v###
-#.....###...###...#...#
-#####################.#"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

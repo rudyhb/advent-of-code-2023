@@ -1,16 +1,51 @@
+use crate::common::day_setup::Day;
 use crate::common::models::grid::GridLike;
 use crate::common::models::{Direction, DirectionFlag, Grid, Point};
-use crate::common::{Context, InputProvider};
 use anyhow::Context as AnyhowContext;
 use colored::Colorize;
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&[
+        "..F7.
+.FJ|.
+SJ.L7
+|F--J
+LJ...",
+        "...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........",
+        ".F----7F7F7F7F-7....
+.|F--7||||||||FJ....
+.||.FJ||||||||L7....
+FJL7L7LJLJ||LJ.L-7..
+L--J.L7...LJS7F-7L7.
+....F-J..F7FJ|L7L7L7
+....L7.F7||L7|.L7L7|
+.....|FJLJ|FJ|F7|.LJ
+....FJL-7.||.||||...
+....L---J.LJ.LJLJ...",
+        "FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L",
+    ])
+}
+pub fn run(input: &str) {
     let map: Map = input.parse::<InputMap>().unwrap().try_into().unwrap();
 
     println!("part 1 - max steps: {}", map.get_loop().len() / 2);
@@ -43,7 +78,7 @@ impl Map {
     pub fn get_loop(&self) -> Vec<Point<usize>> {
         const MAX_ITER: u64 = 10_000_000;
         let mut entered_from = self.grid[&self.start_position].move_out_directions()[0];
-        let mut points = vec![self.start_position.clone()];
+        let mut points = vec![self.start_position];
         for i in 1..MAX_ITER {
             let point = &points[points.len() - 1];
             let exit_to = self.grid[point].get_other_move_out_direction(entered_from);
@@ -65,9 +100,8 @@ impl Map {
         }
         panic!("max iterations exceeded");
     }
-    fn is_inside(&self, point: &Point<usize>, part_of_loop: &HashSet<Point<usize>>) -> bool {
+    fn is_inside(&self, mut point: Point<usize>, part_of_loop: &HashSet<Point<usize>>) -> bool {
         let mut crossings = 0;
-        let mut point = point.clone();
         while point.x < self.grid.len_x() {
             point.x += 1;
             if part_of_loop.contains(&point) {
@@ -101,7 +135,7 @@ impl Map {
             .iter()
             .map(|(point, _)| point)
             .filter(|point| !part_of_loop.contains(point))
-            .filter(|point| self.is_inside(point, &part_of_loop))
+            .filter(|point| self.is_inside(*point, &part_of_loop))
             .collect();
 
         println!(
@@ -297,45 +331,4 @@ impl Display for Space {
             Space::SouthEastBend => write!(f, "F"),
         }
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    [
-        "..F7.
-.FJ|.
-SJ.L7
-|F--J
-LJ...",
-        "...........
-.S-------7.
-.|F-----7|.
-.||.....||.
-.||.....||.
-.|L-7.F-J|.
-.|..|.|..|.
-.L--J.L--J.
-...........",
-        ".F----7F7F7F7F-7....
-.|F--7||||||||FJ....
-.||.FJ||||||||L7....
-FJL7L7LJLJ||LJ.L-7..
-L--J.L7...LJS7F-7L7.
-....F-J..F7FJ|L7L7L7
-....L7.F7||L7|.L7L7|
-.....|FJLJ|FJ|F7|.LJ
-....FJL-7.||.||||...
-....L---J.LJ.LJLJ...",
-        "FF7FSF7F7F7F7F7F---7
-L|LJ||||||||||||F--J
-FL-7LJLJ||||||LJL-77
-F--JF--7||LJLJ7F7FJ-
-L---JF-JLJ.||-FJLJJ7
-|F|F-JF---7F7-L7L|7|
-|FFJF7L7F-JF7|JL---7
-7-L-JL7||F7|L7F-7F7|
-L.L7LFJ|||||FJL7||LJ
-L7JLJL-JLJLJL--JLJ.L",
-    ]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

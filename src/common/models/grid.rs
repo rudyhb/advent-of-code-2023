@@ -63,13 +63,13 @@ pub trait GridLike: Sized {
             None
         }
     }
-    fn iter(&self) -> GridIterator<Self> {
+    fn iter(&self) -> GridIterator<'_, Self> {
         GridIterator::new(self)
     }
-    fn iter_rows(&self) -> GridRowIterator<Self> {
+    fn iter_rows(&self) -> GridRowIterator<'_, Self> {
         GridRowIterator::new(self)
     }
-    fn display_with_rule<V: Display, F>(&self, rule: F) -> GridDisplayWithRule<Self, V, F>
+    fn display_with_rule<V: Display, F>(&self, rule: F) -> GridDisplayWithRule<'_, Self, V, F>
     where
         F: for<'p> Fn((&'p Point<usize>, &'p Self::CellType)) -> V,
     {
@@ -146,17 +146,14 @@ impl<T> Grid<T> {
 impl<T> GridLike for Grid<T> {
     type CellType = T;
 
-    #[inline]
     fn len_x(&self) -> usize {
         self.len_x
     }
 
-    #[inline]
     fn len_y(&self) -> usize {
         self.len_y
     }
 
-    #[inline]
     fn index_point(&self, i: &Point<usize>) -> &Self::CellType {
         &self[i]
     }
@@ -165,14 +162,12 @@ impl<T> GridLike for Grid<T> {
 impl<T> Index<usize> for Grid<T> {
     type Output = [T];
 
-    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         &self.grid[index]
     }
 }
 
 impl<T> IndexMut<usize> for Grid<T> {
-    #[inline]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.grid[index]
     }
@@ -181,14 +176,12 @@ impl<T> IndexMut<usize> for Grid<T> {
 impl<T> Index<&Point<usize>> for Grid<T> {
     type Output = T;
 
-    #[inline]
     fn index(&self, index: &Point<usize>) -> &Self::Output {
         &self.grid[index.y][index.x]
     }
 }
 
 impl<T> IndexMut<&Point<usize>> for Grid<T> {
-    #[inline]
     fn index_mut(&mut self, index: &Point<usize>) -> &mut Self::Output {
         &mut self.grid[index.y][index.x]
     }
@@ -231,17 +224,14 @@ impl<'a> GridB<'a> {
 impl GridLike for GridB<'_> {
     type CellType = u8;
 
-    #[inline]
     fn len_x(&self) -> usize {
         self.len_x
     }
 
-    #[inline]
     fn len_y(&self) -> usize {
         self.len_y
     }
 
-    #[inline]
     fn index_point(&self, i: &Point<usize>) -> &Self::CellType {
         &self[i]
     }
@@ -250,7 +240,6 @@ impl GridLike for GridB<'_> {
 impl Index<usize> for GridB<'_> {
     type Output = [u8];
 
-    #[inline]
     fn index(&self, index: usize) -> &Self::Output {
         &self.data[index * (self.len_x + 1)..index * (self.len_x + 1) + self.len_x]
     }
@@ -259,7 +248,6 @@ impl Index<usize> for GridB<'_> {
 impl Index<&Point<usize>> for GridB<'_> {
     type Output = u8;
 
-    #[inline]
     fn index(&self, index: &Point<usize>) -> &Self::Output {
         &self[index.y][index.x]
     }

@@ -1,4 +1,4 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use anyhow::Context as AnyhowContext;
 use itertools::Itertools;
 use std::borrow::Cow;
@@ -6,10 +6,15 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["???.### 1,1,3
+.??..??...?##. 1,1,3
+?#?#?#?#?#?#?#? 1,3,1,6
+????.#...#... 4,1,1
+????.######..#####. 1,6,5
+?###???????? 3,2,1"])
+}
+pub fn run(input: &str) {
     let rows: Vec<Row> = input.lines().map(|line| line.parse().unwrap()).collect();
     Row::print_arrangements(&rows, 1);
     let rows = {
@@ -105,7 +110,7 @@ impl Row {
         cache.insert(CacheIndex::new_owned(self, i), sum);
         sum
     }
-    fn with_next_undamaged(&self, i: usize) -> Option<Cow<Self>> {
+    fn with_next_undamaged(&self, i: usize) -> Option<Cow<'_, Self>> {
         match self.conditions.0[i] {
             Some(true) => None,
             Some(false) => Some(Cow::Borrowed(self)),
@@ -226,15 +231,4 @@ impl Display for Row {
                 .join(",")
         )
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["???.### 1,1,3
-.??..??...?##. 1,1,3
-?#?#?#?#?#?#?#? 1,3,1,6
-????.#...#... 4,1,1
-????.######..#####. 1,6,5
-?###???????? 3,2,1"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

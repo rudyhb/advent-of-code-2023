@@ -1,14 +1,22 @@
+use crate::common::day_setup::Day;
 use crate::common::models::grid::GridLike;
 use crate::common::models::{DirectionFlag, Grid, Point};
-use crate::common::{Context, InputProvider};
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598.."])
+}
+pub fn run(input: &str) {
     let schematic: Schematic = input.parse().unwrap();
     let sum = schematic.get_sum_part_numbers();
     println!("part 1 sum: {}", sum);
@@ -26,7 +34,7 @@ struct Schematic {
 impl Schematic {
     fn number_is_part(&self, number: &Number) -> bool {
         log::trace!("starting number {:?}", number);
-        let mut point = number.position.clone();
+        let mut point = number.position;
         let mut neighbors = self.grid.neighbors(
             &point,
             DirectionFlag::LEFT
@@ -37,7 +45,10 @@ impl Schematic {
         );
         for _ in 1..number.len {
             point.x += 1;
-            neighbors.extend(self.grid.neighbors(&point, DirectionFlag::UP | DirectionFlag::DOWN));
+            neighbors.extend(
+                self.grid
+                    .neighbors(&point, DirectionFlag::UP | DirectionFlag::DOWN),
+            );
         }
         neighbors.extend(self.grid.neighbors(
             &point,
@@ -130,7 +141,7 @@ impl FromStr for Schematic {
             let value = number.into_iter().collect::<String>().parse()?;
             let position = Point { x, y };
             numbers.insert(
-                position.clone(),
+                position,
                 Number {
                     position,
                     len,
@@ -167,19 +178,4 @@ impl FromStr for Schematic {
             grid,
         })
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["467..114..
-...*......
-..35..633.
-......#...
-617*......
-.....+.58.
-..592.....
-......755.
-...$.*....
-.664.598.."]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

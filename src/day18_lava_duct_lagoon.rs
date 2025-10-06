@@ -1,5 +1,5 @@
+use crate::common::day_setup::Day;
 use crate::common::models::{Direction, Point};
-use crate::common::{Context, InputProvider};
 use anyhow::Context as AnyhowContext;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -8,10 +8,23 @@ use std::fmt::{Display, Formatter};
 use std::ops::RangeInclusive;
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["R 6 (#70c710)
+D 5 (#0dc571)
+L 2 (#5713f0)
+D 2 (#d2c081)
+R 2 (#59c680)
+D 2 (#411b91)
+L 5 (#8ceee2)
+U 2 (#caa173)
+L 1 (#1b58a2)
+U 2 (#caa171)
+R 2 (#7807d2)
+U 3 (#a77fa3)
+L 2 (#015232)
+U 2 (#7a21e3)"])
+}
+pub fn run(input: &str) {
     let instructions: Vec<Instruction> = input.lines().map(|line| line.parse().unwrap()).collect();
 
     let lagoon = Lagoon::dig_edges(&instructions);
@@ -203,11 +216,10 @@ impl Lagoon {
         self.range_y
             .clone()
             .flat_map(|y| self.range_x.clone().map(move |x| Point { x, y }))
-            .filter(|point| self.dug.contains(point) || self.count_edge_crossings(point) % 2 == 1)
+            .filter(|point| self.dug.contains(point) || self.count_edge_crossings(*point) % 2 == 1)
             .count()
     }
-    fn count_edge_crossings(&self, point: &Point<i64>) -> usize {
-        let mut point = point.clone();
+    fn count_edge_crossings(&self, mut point: Point<i64>) -> usize {
         let mut count = 0;
         let mut on_edge = false;
         let mut on_left = false;
@@ -266,7 +278,7 @@ impl Lagoon {
         {
             for _ in 0..*count {
                 point = point.move_in_direction_unchecked(*direction);
-                set.insert(point.clone());
+                set.insert(point);
             }
         }
 
@@ -370,23 +382,4 @@ impl Display for Lagoon {
         }
         Ok(())
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["R 6 (#70c710)
-D 5 (#0dc571)
-L 2 (#5713f0)
-D 2 (#d2c081)
-R 2 (#59c680)
-D 2 (#411b91)
-L 5 (#8ceee2)
-U 2 (#caa173)
-L 1 (#1b58a2)
-U 2 (#caa171)
-R 2 (#7807d2)
-U 3 (#a77fa3)
-L 2 (#015232)
-U 2 (#7a21e3)"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

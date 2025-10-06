@@ -1,14 +1,23 @@
+use crate::common::day_setup::Day;
 use crate::common::models::grid::GridLike;
 use crate::common::models::{Direction, Grid, Point};
-use crate::common::{Context, InputProvider};
 use colored::Colorize;
 use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&[r".|...\....
+|.-.\.....
+.....|-...
+........|.
+..........
+.........\
+..../.\\..
+.-.-/..|..
+.|....-|.\
+..//.|...."])
+}
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn run(input: &str) {
     let contraption: Contraption = input.parse().unwrap();
     println!(
         "part 1 energized count: {}",
@@ -148,7 +157,7 @@ impl SimpleCache {
         self.visited.contains(point)
     }
     pub fn visit(&mut self, point: BeamPoint) {
-        self.cache.insert(point.location.clone());
+        self.cache.insert(point.location);
         self.visited.insert(point);
     }
 }
@@ -259,19 +268,4 @@ impl FromStr for Contraption {
             }))?,
         })
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    [r".|...\....
-|.-.\.....
-.....|-...
-........|.
-..........
-.........\
-..../.\\..
-.-.-/..|..
-.|....-|.\
-..//.|...."]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

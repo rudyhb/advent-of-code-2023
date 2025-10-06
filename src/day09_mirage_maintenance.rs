@@ -1,10 +1,12 @@
-use crate::common::{Context, InputProvider};
+use crate::common::day_setup::Day;
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
-
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["0 3 6 9 12 15
+1 3 6 10 15 21
+10 13 16 21 30 45"])
+}
+pub fn run(input: &str) {
     let histories: Vec<History> = input.lines().map(|line| line.parse().unwrap()).collect();
 
     let sum: i64 = histories
@@ -74,12 +76,4 @@ impl FromStr for History {
                 .collect::<Result<Vec<_>, _>>()?,
         ))
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["0 3 6 9 12 15
-1 3 6 10 15 21
-10 13 16 21 30 45"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }

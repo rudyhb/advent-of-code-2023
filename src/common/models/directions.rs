@@ -29,11 +29,10 @@ pub enum Direction {
 }
 
 impl Direction {
-    #[inline]
     pub const fn all() -> [Direction; 4] {
         [Self::Up, Self::Down, Self::Left, Self::Right]
     }
-    #[inline]
+
     pub const fn all_ref() -> &'static [Direction] {
         &[Self::Up, Self::Down, Self::Left, Self::Right]
     }

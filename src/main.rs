@@ -1,3 +1,5 @@
+use crate::common::day_setup::Day;
+use common::day_setup;
 use utils::timer::Timer;
 
 mod common;
@@ -24,23 +26,25 @@ mod day20_pulse_propagation;
 mod day21_step_counter;
 mod day22_sand_slabs;
 mod day23_a_long_walk;
-
+mod day24_never_tell_me_the_odds;
 
 fn main() {
-    let mut context = common::Context::default();
+    let mut context = day_setup::AppContext::default();
 
-    if let Ok(testing) = std::env::var("APP_TESTING") {
-        if let Ok(testing) = testing.parse() {
-            context.set_testing(testing);
-        }
-    }
-    //context.set_testing(0);
+    context.set_testing(
+        std::env::var("APP_TESTING")
+            .ok()
+            .map(|s| s.parse().expect("invalid APP_TESTING")),
+    );
+    //context.set_testing(Some(0));
 
     if std::env::var("RUST_LOG").is_err() {
-        if context.is_testing() {
-            std::env::set_var("RUST_LOG", "trace");
-        } else {
-            std::env::set_var("RUST_LOG", "info");
+        unsafe {
+            if context.is_testing() {
+                std::env::set_var("RUST_LOG", "debug");
+            } else {
+                std::env::set_var("RUST_LOG", "info");
+            }
         }
     }
     env_logger::init();
@@ -59,36 +63,37 @@ fn main() {
             .unwrap_or_else(|_| panic!("Failed to read input file input/{:02}.txt", day))
             .into()
     }));
-    let run = days[day - 1];
+    let run = days[day - 1]();
 
     println!("Running day {}\n", day);
-    run(&mut context);
+    run.exec(&mut context);
 }
 
-fn days() -> &'static [fn(&mut common::Context)] {
+fn days() -> &'static [fn() -> Day] {
     &[
-        day01_trebuchet::run,
-        day02_cube_conundrum::run,
-        day03_gear_ratios::run,
-        day04_scratchcards::run,
-        day05_if_you_give_a_seed_a_fertilizer::run,
-        day06_wait_for_it::run,
-        day07_camel_cards::run,
-        day08_haunted_wasteland::run,
-        day09_mirage_maintenance::run,
-        day10_pipe_maze::run,
-        day11_cosmic_expansion::run,
-        day12_hot_springs::run,
-        day13_point_of_incidence::run,
-        day14_parabolic_reflector_dish::run,
-        day15_lens_library::run,
-        day16_the_floor_will_be_lava::run,
-        day17_clumsy_crucible::run,
-        day18_lava_duct_lagoon::run,
-        day19_aplenty::run,
-        day20_pulse_propagation::run,
-        day21_step_counter::run,
-        day22_sand_slabs::run,
-        day23_a_long_walk::run,
+        day01_trebuchet::day,
+        day02_cube_conundrum::day,
+        day03_gear_ratios::day,
+        day04_scratchcards::day,
+        day05_if_you_give_a_seed_a_fertilizer::day,
+        day06_wait_for_it::day,
+        day07_camel_cards::day,
+        day08_haunted_wasteland::day,
+        day09_mirage_maintenance::day,
+        day10_pipe_maze::day,
+        day11_cosmic_expansion::day,
+        day12_hot_springs::day,
+        day13_point_of_incidence::day,
+        day14_parabolic_reflector_dish::day,
+        day15_lens_library::day,
+        day16_the_floor_will_be_lava::day,
+        day17_clumsy_crucible::day,
+        day18_lava_duct_lagoon::day,
+        day19_aplenty::day,
+        day20_pulse_propagation::day,
+        day21_step_counter::day,
+        day22_sand_slabs::day,
+        day23_a_long_walk::day,
+        day24_never_tell_me_the_odds::day,
     ]
 }

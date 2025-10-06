@@ -1,11 +1,26 @@
+use crate::common::day_setup::Day;
 use crate::common::models::grid::GridLike;
 use crate::common::models::{Grid, Point};
-use crate::common::{Context, InputProvider};
 use std::str::FromStr;
 
-pub fn run(context: &mut Context) {
-    context.add_test_inputs(get_test_inputs());
-    let input = context.get_input();
+pub fn day() -> Day {
+    Day::new(run).with_test_inputs(&["#.##..##.
+..#.##.#.
+##......#
+##......#
+..#.##.#.
+..##..##.
+#.#.##.#.
+
+#...##..#
+#....#..#
+..##..###
+#####.##.
+#####.##.
+..##..###
+#....#..#"])
+}
+pub fn run(input: &str) {
     let patterns: Vec<Pattern> = input
         .split("\n\n")
         .map(|chunk| chunk.parse().unwrap())
@@ -151,24 +166,4 @@ impl FromStr for Pattern {
             })
         }))?))
     }
-}
-
-fn get_test_inputs() -> impl Iterator<Item = Box<InputProvider>> {
-    ["#.##..##.
-..#.##.#.
-##......#
-##......#
-..#.##.#.
-..##..##.
-#.#.##.#.
-
-#...##..#
-#....#..#
-..##..###
-#####.##.
-#####.##.
-..##..###
-#....#..#"]
-    .into_iter()
-    .map(|input| Box::new(move || input.into()) as Box<InputProvider>)
 }
